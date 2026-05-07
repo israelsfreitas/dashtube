@@ -284,9 +284,6 @@ html, body {
 }
 
 .box-views {
-  font-family: var(--ff-linear);
-  font-size: 0.88rem;
-  color: var(--text-secondary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -294,14 +291,29 @@ html, body {
 .box-views svg { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
 
 .box-videos {
-  font-family: var(--ff-linear);
-  font-size: 0.88rem;
-  color: var(--text-secondary);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .box-videos svg { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
+
+.metrics-text {
+  display: flex;
+  align-items: baseline;
+  gap: 4px; /* Exatamente um espaço suave */
+}
+.box-metrics-val {
+  font-family: var(--ff-linear);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.box-metrics-lbl {
+  font-family: var(--ff-linear);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
 
 /* Optional: last video thumb */
 .box-last-video {

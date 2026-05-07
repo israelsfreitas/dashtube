@@ -372,7 +372,7 @@ function buildBox(ch) {
 
   const subsLbl = document.createElement('div');
   subsLbl.className   = 'subs-label';
-  subsLbl.textContent = 'inscritos';
+  subsLbl.textContent = 'INSCRITOS';
 
   if (data.subs !== undefined && data.subs >= 950 && data.subs <= 1050) {
     subsVal.classList.add('subs-milestone');
@@ -399,7 +399,10 @@ function buildBox(ch) {
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
       <circle cx="12" cy="12" r="3"/>
     </svg>
-    <span class="val" data-value="${data.views || 0}">${data.views !== undefined ? fmt(data.views) : '—'}</span> VIEWS
+    <div class="metrics-text">
+      <span class="val box-metrics-val" data-value="${data.views || 0}">${data.views !== undefined ? fmt(data.views) : '—'}</span>
+      <span class="box-metrics-lbl">VIEWS</span>
+    </div>
   `;
   metricsWrap.appendChild(viewsEl);
 
@@ -411,7 +414,10 @@ function buildBox(ch) {
       <polygon points="23 7 16 12 23 17 23 7"/>
       <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
     </svg>
-    <span class="val" data-value="${data.videos || 0}">${data.videos !== undefined ? fmt(data.videos) : '—'}</span> VIDEOS
+    <div class="metrics-text">
+      <span class="val box-metrics-val" data-value="${data.videos || 0}">${data.videos !== undefined ? fmt(data.videos) : '—'}</span>
+      <span class="box-metrics-lbl">VIDEOS</span>
+    </div>
   `;
   metricsWrap.appendChild(vidEl);
 
