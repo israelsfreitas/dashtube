@@ -389,7 +389,7 @@ function buildBox(ch) {
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
       <circle cx="12" cy="12" r="3"/>
     </svg>
-    <span class="val" data-value="${data.views || 0}">${data.views !== undefined ? fmt(data.views) : '—'}</span> visualizações
+    <span class="val" data-value="${data.views || 0}">${data.views !== undefined ? fmt(data.views) : '—'}</span> VIEWS
   `;
   metricsWrap.appendChild(viewsEl);
 
@@ -401,7 +401,7 @@ function buildBox(ch) {
       <polygon points="23 7 16 12 23 17 23 7"/>
       <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
     </svg>
-    <span class="val" data-value="${data.videos || 0}">${data.videos !== undefined ? fmt(data.videos) : '—'}</span> vídeos
+    <span class="val" data-value="${data.videos || 0}">${data.videos !== undefined ? fmt(data.videos) : '—'}</span> VIDEOS
   `;
   metricsWrap.appendChild(vidEl);
 
