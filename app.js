@@ -351,6 +351,11 @@ function buildBox(ch) {
 
   box.appendChild(header);
 
+  // Divider 1
+  const div1 = document.createElement('div');
+  div1.className = 'box-divider';
+  box.appendChild(div1);
+
   // ── Subs (colossal) ──
   const subsWrap = document.createElement('div');
   subsWrap.className = 'box-subs';
@@ -367,6 +372,15 @@ function buildBox(ch) {
   subsWrap.appendChild(subsLbl);
   box.appendChild(subsWrap);
 
+  // Divider 2
+  const div2 = document.createElement('div');
+  div2.className = 'box-divider';
+  box.appendChild(div2);
+
+  // ── Metrics Wrap (Views + Videos) ──
+  const metricsWrap = document.createElement('div');
+  metricsWrap.className = 'box-metrics-wrap';
+
   // ── Views ──
   const viewsEl = document.createElement('div');
   viewsEl.className = 'box-views';
@@ -377,7 +391,7 @@ function buildBox(ch) {
     </svg>
     <span class="val" data-value="${data.views || 0}">${data.views !== undefined ? fmt(data.views) : '—'}</span> visualizações
   `;
-  box.appendChild(viewsEl);
+  metricsWrap.appendChild(viewsEl);
 
   // ── Videos ──
   const vidEl = document.createElement('div');
@@ -389,7 +403,14 @@ function buildBox(ch) {
     </svg>
     <span class="val" data-value="${data.videos || 0}">${data.videos !== undefined ? fmt(data.videos) : '—'}</span> vídeos
   `;
-  box.appendChild(vidEl);
+  metricsWrap.appendChild(vidEl);
+
+  box.appendChild(metricsWrap);
+
+  // Divider 3
+  const div3 = document.createElement('div');
+  div3.className = 'box-divider';
+  box.appendChild(div3);
 
   // ── Weekly indicator ──
   const wrap = document.createElement('div');

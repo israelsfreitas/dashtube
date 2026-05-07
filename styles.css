@@ -8,6 +8,7 @@
   --ff-display: 'Syne', sans-serif;
   --ff-mono:    'DM Mono', monospace;
   --ff-linear:  'Inter', sans-serif;
+  --ff-outfit:  'Outfit', sans-serif;
 
   /* spacing */
   --r-box: 16px;
@@ -227,9 +228,10 @@ html, body {
 }
 .box-lifetime {
   font-family: var(--ff-linear);
-  font-size: 0.65rem;
+  font-size: 1.13rem;
   color: var(--text-muted);
   letter-spacing: 0.02em;
+  margin-top: 6px;
 }
 
 /* Inscritos big */
@@ -241,8 +243,8 @@ html, body {
   align-items: flex-start;
 }
 .subs-value {
-  font-family: var(--ff-display);
-  font-size: clamp(1.5rem, 4vw, 2.6rem);
+  font-family: var(--ff-outfit);
+  font-size: clamp(1.9rem, 5.5vw, 3.4rem);
   font-weight: 800;
   color: var(--sub-big-color);
   letter-spacing: -0.04em;
@@ -250,35 +252,50 @@ html, body {
   white-space: nowrap;
 }
 .subs-label {
-  font-size: 0.65rem;
+  font-size: 1.13rem;
   font-weight: 600;
   color: var(--text-muted);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  margin-top: 2px;
+  margin-top: 8px;
 }
 
-/* Visualizações */
+/* ── DIVIDER ── */
+.box-divider {
+  height: 1px;
+  background: var(--border-strong);
+  width: 100%;
+  margin: 16px 0;
+  opacity: 0.5;
+}
+
+/* Visualizações e Videos Wrap */
+.box-metrics-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
 .box-views {
   font-family: var(--ff-linear);
-  font-size: 0.72rem;
+  font-size: 1.26rem;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
-.box-views svg { width: 11px; height: 11px; color: var(--text-muted); flex-shrink: 0; }
+.box-views svg { width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
 
-/* Optional: total vídeos */
 .box-videos {
   font-family: var(--ff-linear);
-  font-size: 0.72rem;
+  font-size: 1.26rem;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
-.box-videos svg { width: 11px; height: 11px; color: var(--text-muted); flex-shrink: 0; }
+.box-videos svg { width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
 
 /* Optional: last video thumb */
 .box-last-video {
@@ -933,7 +950,7 @@ input[type="date"].field-input {
 .monetize-btn {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: 6px;
   border: 1.5px solid var(--text-muted);
   background: transparent;
   color: var(--text-muted);
