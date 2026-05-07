@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>YT Monitor</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- TOP LEFT GEAR BUTTON -->
+  <button id="gear-btn" aria-label="Configurações" title="Configurações">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
+
+  <!-- MAIN STAGE: scroll snap container -->
+  <main id="stage">
+    <!-- Pages injected by JS -->
+    <div id="empty-state" class="empty-state">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/>
+          <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/>
+        </svg>
+      </div>
+      <p class="empty-title">Nenhum canal monitorado</p>
+      <p class="empty-sub">Abra as configurações e adicione canais com a sua YouTube API Key</p>
+    </div>
+  </main>
+
+  <!-- PAGE DOTS -->
+  <nav id="dots-nav" aria-label="Páginas"></nav>
+
+  <!-- SETTINGS MODAL OVERLAY -->
+  <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Configurações</h2>
+        <button id="modal-close" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- THEME TOGGLE -->
+        <section class="modal-section">
+          <div class="section-row">
+            <span class="section-label">Tema</span>
+            <label class="toggle-switch" aria-label="Alternar tema">
+              <input type="checkbox" id="theme-toggle" />
+              <span class="toggle-track">
+                <span class="toggle-thumb"></span>
+              </span>
+              <span class="toggle-label-text" id="theme-label">Escuro</span>
+            </label>
+          </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- API KEY -->
+        <section class="modal-section">
+          <label class="field-label" for="api-key-input">YouTube API v3 Key</label>
+          <div class="input-row">
+            <input type="password" id="api-key-input" class="field-input" placeholder="AIza..." autocomplete="off" spellcheck="false" />
+            <button id="save-api-key" class="btn-icon" title="Salvar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+          </div>
+          <span id="api-key-status" class="field-hint"></span>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ADD CHANNEL -->
+        <section class="modal-section">
+          <div class="section-title">Adicionar Canal</div>
+          <label class="field-label" for="channel-id-input">Channel ID <span class="hint">(começa com UC…)</span></label>
+          <input type="text" id="channel-id-input" class="field-input" placeholder="UCxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false" />
+          <label class="field-label mt-8" for="channel-date-input">Data do Primeiro Vídeo</label>
+          <input type="date" id="channel-date-input" class="field-input" />
+          <button id="add-channel-btn" class="btn-primary mt-8">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Adicionar Canal
+          </button>
+          <span id="add-channel-status" class="field-hint mt-4"></span>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- CHANNEL LIST (SortableJS) -->
+        <section class="modal-section">
+          <div class="section-title">Canais <span id="channel-count" class="count-badge">0</span></div>
+          <ul id="channel-list" class="channel-list">
+            <!-- items injected by JS -->
+          </ul>
+          <p id="no-channels-msg" class="no-channels">Nenhum canal adicionado ainda.</p>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- CHANNEL OPTIONS PANEL (nested inside overlay) -->
+    <div id="channel-options-panel" class="channel-options-panel hidden">
+      <div class="cop-header">
+        <button id="cop-back" class="cop-back" aria-label="Voltar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Voltar
+        </button>
+        <span id="cop-title" class="cop-title"></span>
+      </div>
+      <div class="cop-body">
+        <p class="cop-subtitle">Métricas opcionais desta box:</p>
+        <label class="option-toggle-row">
+          <span>Total de vídeos</span>
+          <label class="toggle-switch sm">
+            <input type="checkbox" data-option="showVideos" />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </label>
+        <label class="option-toggle-row">
+          <span>Thumb + views do último vídeo</span>
+          <label class="toggle-switch sm">
+            <input type="checkbox" data-option="showLastVideo" />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </label>
+        <label class="option-toggle-row">
+          <span>Indicador semanal de uploads</span>
+          <label class="toggle-switch sm">
+            <input type="checkbox" data-option="showWeekly" />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING INDICATOR -->
+  <div id="loading-toast" class="loading-toast hidden">
+    <span class="spinner"></span>
+    <span id="loading-msg">Buscando dados…</span>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
