@@ -170,7 +170,7 @@ html, body {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
   overflow: hidden;
   position: relative;
   box-shadow: var(--shadow-box);
@@ -215,7 +215,7 @@ html, body {
   flex-shrink: 0;
 }
 .box-name {
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.2;
@@ -228,10 +228,10 @@ html, body {
 }
 .box-lifetime {
   font-family: var(--ff-linear);
-  font-size: 1.13rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   letter-spacing: 0.02em;
-  margin-top: 6px;
+  margin-top: 2px;
 }
 
 /* Inscritos big */
@@ -265,7 +265,7 @@ html, body {
   height: 1px;
   background: var(--border-strong);
   width: 100%;
-  margin: 16px 0;
+  margin: 8px 0;
   opacity: 0.5;
 }
 
@@ -273,7 +273,7 @@ html, body {
 .box-metrics-wrap {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
   width: 100%;
 }
 
@@ -285,7 +285,7 @@ html, body {
   align-items: center;
   gap: 8px;
 }
-.box-views svg { width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
+.box-views svg { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
 
 .box-videos {
   font-family: var(--ff-linear);
@@ -295,7 +295,7 @@ html, body {
   align-items: center;
   gap: 8px;
 }
-.box-videos svg { width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
+.box-videos svg { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
 
 /* Optional: last video thumb */
 .box-last-video {
