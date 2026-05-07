@@ -30,11 +30,7 @@ const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
 function fmt(n) {
   if (n === undefined || n === null || isNaN(n)) return '—';
-  n = Number(n);
-  if (n >= 1e9) return (n / 1e9).toFixed(2).replace(/\.?0+$/, '') + 'B';
-  if (n >= 1e6) return (n / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
-  if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.?0+$/, '') + 'K';
-  return n.toLocaleString('pt-BR');
+  return Number(n).toLocaleString('pt-BR');
 }
 
 function lifetime(startDateStr) {
@@ -47,11 +43,17 @@ function lifetime(startDateStr) {
   const yrs   = Math.floor(days / 365);
   const mos   = Math.floor((days % 365) / 30);
   const d     = days % 30;
-  let s = '';
-  if (yrs) s += `${yrs}a `;
-  if (mos) s += `${mos}m `;
-  s += `${d}d`;
-  return s.trim();
+  
+  const parts = [];
+  if (yrs > 0) parts.push(`${yrs} ${yrs === 1 ? 'ano' : 'anos'}`);
+  if (mos > 0) parts.push(`${mos} ${mos === 1 ? 'mês' : 'meses'}`);
+  if (d > 0 || parts.length === 0) parts.push(`${d} ${d === 1 ? 'dia' : 'dias'}`);
+  
+  if (parts.length > 1) {
+    const last = parts.pop();
+    return parts.join(', ') + ' e ' + last;
+  }
+  return parts[0];
 }
 
 function getWeekUploadDays(publishedDates) {
@@ -104,9 +106,7 @@ function loadState() {
     id:        ch.id,
     startDate: ch.startDate || '',
     options: {
-      showVideos:    ch.options?.showVideos    ?? false,
-      showLastVideo: ch.options?.showLastVideo ?? false,
-      showWeekly:    ch.options?.showWeekly    ?? false,
+      monetized: ch.options?.monetized ?? false
     },
     data: ch.data || {},
   }));
@@ -159,45 +159,17 @@ async function fetchChannelData(channel) {
     fetchedAt: Date.now(),
   };
 
-  // 2. Optional: last video + weekly (via uploads playlist)
-  if (options.showLastVideo || options.showWeekly) {
-    const plId = id.replace(/^UC/, 'UU');
-    try {
-      const plResp = await ytFetch('playlistItems', {
-        part:       'snippet,contentDetails',
-        playlistId: plId,
-        maxResults: options.showWeekly ? 50 : 1,
-      });
-      const plItems = plResp.items || [];
-
-      if (plItems.length > 0 && options.showLastVideo) {
-        const last   = plItems[0];
-        const vidId  = last.contentDetails?.videoId;
-        const thumb  = last.snippet?.thumbnails?.medium?.url
-                    || last.snippet?.thumbnails?.default?.url
-                    || '';
-        const title  = last.snippet?.title || '';
-
-        // fetch video stats for views
-        let recentViews = 0;
-        if (vidId) {
-          try {
-            const vResp = await ytFetch('videos', {
-              part: 'statistics',
-              id:   vidId,
-            });
-            recentViews = Number(vResp.items?.[0]?.statistics?.viewCount || 0);
-          } catch {/* non-critical */}
-        }
-        data.lastVideo = { thumb, title, views: recentViews };
-      }
-
-      if (options.showWeekly) {
-        const pubDates = plItems.map(i => i.contentDetails?.videoPublishedAt || i.snippet?.publishedAt).filter(Boolean);
-        data.weekDays  = getWeekUploadDays(pubDates);
-      }
-    } catch {/* playlist fetch failed silently */}
-  }
+  const plId = id.replace(/^UC/, 'UU');
+  try {
+    const plResp = await ytFetch('playlistItems', {
+      part:       'snippet,contentDetails',
+      playlistId: plId,
+      maxResults: 50,
+    });
+    const plItems = plResp.items || [];
+    const pubDates = plItems.map(i => i.contentDetails?.videoPublishedAt || i.snippet?.publishedAt).filter(Boolean);
+    data.weekDays  = getWeekUploadDays(pubDates);
+  } catch {/* playlist fetch failed silently */}
 
   return data;
 }
@@ -215,7 +187,14 @@ async function refreshAllChannels() {
     }
   }
   saveState();
-  renderStage();
+  
+  if ($$('.channel-box', $('#stage')).length > 0 && $$('.channel-box', $('#stage')).length === state.channels.length) {
+    updateStageData();
+  } else {
+    renderStage();
+  }
+  
+  updateTopBarIndicator(errors === 0);
   if (errors) {
     showToast(`${errors} erro(s) ao buscar dados`);
     setTimeout(hideToast, 3000);
@@ -348,6 +327,22 @@ function buildBox(ch) {
   }
 
   header.appendChild(nameWrap);
+
+  // Monetize button
+  const monBtn = document.createElement('button');
+  monBtn.className = 'monetize-btn' + (options.monetized ? ' active' : '');
+  monBtn.title = 'Monetizado';
+  monBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="12" y1="1" x2="12" y2="23"></line>
+    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+  </svg>`;
+  monBtn.addEventListener('click', () => {
+    options.monetized = !options.monetized;
+    monBtn.className = 'monetize-btn' + (options.monetized ? ' active' : '');
+    saveState();
+  });
+  header.appendChild(monBtn);
+
   box.appendChild(header);
 
   // ── Subs (colossal) ──
@@ -356,6 +351,7 @@ function buildBox(ch) {
 
   const subsVal = document.createElement('div');
   subsVal.className   = 'subs-value';
+  subsVal.dataset.value = data.subs || 0;
   subsVal.textContent = data.subs !== undefined ? fmt(data.subs) : '—';
   subsWrap.appendChild(subsVal);
 
@@ -373,87 +369,43 @@ function buildBox(ch) {
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
       <circle cx="12" cy="12" r="3"/>
     </svg>
-    ${data.views !== undefined ? fmt(data.views) + ' visualizações' : '—'}
+    <span class="val" data-value="${data.views || 0}">${data.views !== undefined ? fmt(data.views) : '—'}</span> visualizações
   `;
   box.appendChild(viewsEl);
 
-  // ── Optional: total videos ──
-  if (options.showVideos) {
-    const vidEl = document.createElement('div');
-    vidEl.className = 'box-videos';
-    vidEl.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="23 7 16 12 23 17 23 7"/>
-        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-      </svg>
-      ${data.videos !== undefined ? fmt(data.videos) + ' vídeos' : '—'}
-    `;
-    box.appendChild(vidEl);
-  }
+  // ── Videos ──
+  const vidEl = document.createElement('div');
+  vidEl.className = 'box-videos';
+  vidEl.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="23 7 16 12 23 17 23 7"/>
+      <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+    </svg>
+    <span class="val" data-value="${data.videos || 0}">${data.videos !== undefined ? fmt(data.videos) : '—'}</span> vídeos
+  `;
+  box.appendChild(vidEl);
 
-  // ── Optional: last video thumb ──
-  if (options.showLastVideo && data.lastVideo) {
-    const lv = data.lastVideo;
-    const wrap = document.createElement('div');
-    wrap.className = 'box-last-video';
+  // ── Weekly indicator ──
+  const wrap = document.createElement('div');
+  wrap.className = 'box-weekly';
 
-    if (lv.thumb) {
-      const img = document.createElement('img');
-      img.className = 'last-thumb';
-      img.src       = lv.thumb;
-      img.alt       = lv.title;
-      img.loading   = 'lazy';
-      wrap.appendChild(img);
-    } else {
-      const ph = document.createElement('div');
-      ph.className = 'last-thumb-placeholder';
-      wrap.appendChild(ph);
-    }
+  WEEK_LABELS.forEach((lbl, i) => {
+    const dayWrap = document.createElement('div');
+    dayWrap.className = 'week-day';
 
-    const info = document.createElement('div');
-    info.className = 'last-video-info';
+    const dot = document.createElement('div');
+    dot.className = 'week-dot' + (data.weekDays?.has?.(i) ? ' active' : '');
+    dayWrap.appendChild(dot);
 
-    const titleEl = document.createElement('div');
-    titleEl.className   = 'last-video-title';
-    titleEl.textContent = lv.title || '—';
-    titleEl.title       = lv.title || '';
-    info.appendChild(titleEl);
+    const label = document.createElement('div');
+    label.className   = 'week-label';
+    label.textContent = lbl;
+    dayWrap.appendChild(label);
 
-    const vEl = document.createElement('div');
-    vEl.className   = 'last-video-views';
-    vEl.textContent = fmt(lv.views) + ' views';
-    info.appendChild(vEl);
+    wrap.appendChild(dayWrap);
+  });
 
-    wrap.appendChild(info);
-    box.appendChild(wrap);
-  }
-
-  // ── Optional: weekly indicator ──
-  if (options.showWeekly) {
-    const todayDay = new Date().getDay();
-    const wrap = document.createElement('div');
-    wrap.className = 'box-weekly';
-
-    WEEK_LABELS.forEach((lbl, i) => {
-      const dayWrap = document.createElement('div');
-      dayWrap.className = 'week-day';
-
-      const dot = document.createElement('div');
-      dot.className = 'week-dot'
-        + (data.weekDays?.has?.(i) ? ' active' : '')
-        + (i === todayDay ? ' today' : '');
-      dayWrap.appendChild(dot);
-
-      const label = document.createElement('div');
-      label.className   = 'week-label';
-      label.textContent = lbl;
-      dayWrap.appendChild(label);
-
-      wrap.appendChild(dayWrap);
-    });
-
-    box.appendChild(wrap);
-  }
+  box.appendChild(wrap);
 
   return box;
 }
@@ -498,30 +450,9 @@ function closeModal() {
   overlay.classList.remove('fade-in');
   overlay.classList.add('fade-out');
   setTimeout(() => overlay.classList.add('hidden'), 190);
-  closeChannelOptions();
 }
 
-function openChannelOptions(channelId) {
-  const ch    = state.channels.find(c => c.id === channelId);
-  if (!ch) return;
-  copChannelId = channelId;
 
-  const panel = $('#channel-options-panel');
-  $('#cop-title').textContent = ch.data?.name || ch.id;
-
-  // Set toggles
-  $$('[data-option]', panel).forEach(inp => {
-    const opt = inp.dataset.option;
-    inp.checked = ch.options[opt] ?? false;
-  });
-
-  panel.classList.remove('hidden');
-}
-
-function closeChannelOptions() {
-  $('#channel-options-panel').classList.add('hidden');
-  copChannelId = null;
-}
 
 // ── CHANNEL LIST (modal) ──────────────────────
 function renderChannelList() {
@@ -571,16 +502,7 @@ function renderChannelList() {
     const actions = document.createElement('div');
     actions.className = 'ci-actions';
 
-    // Settings button
-    const settBtn = document.createElement('button');
-    settBtn.className = 'ci-btn';
-    settBtn.title     = 'Opções';
-    settBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-    </svg>`;
-    settBtn.addEventListener('click', () => openChannelOptions(ch.id));
-    actions.appendChild(settBtn);
+    // Actions removed settings btn
 
     // Refresh button
     const refBtn = document.createElement('button');
@@ -731,47 +653,106 @@ function init() {
   $('#add-channel-btn').addEventListener('click', addChannel);
   $('#channel-id-input').addEventListener('keydown', e => { if (e.key === 'Enter') addChannel(); });
 
-  // Channel options panel: back
-  $('#cop-back').addEventListener('click', () => {
-    // save options before closing
-    if (copChannelId) {
-      const ch = state.channels.find(c => c.id === copChannelId);
-      if (ch) {
-        $$('[data-option]', $('#channel-options-panel')).forEach(inp => {
-          ch.options[inp.dataset.option] = inp.checked;
-        });
-        saveState();
-        renderStage();
-      }
-    }
-    closeChannelOptions();
-  });
-
-  // Channel option toggles — live save
-  $$('[data-option]', $('#channel-options-panel')).forEach(inp => {
-    inp.addEventListener('change', () => {
-      if (!copChannelId) return;
-      const ch = state.channels.find(c => c.id === copChannelId);
-      if (!ch) return;
-      ch.options[inp.dataset.option] = inp.checked;
-      // If enabling an optional that needs data, re-fetch
-      const needsFetch = inp.checked && (inp.dataset.option === 'showLastVideo' || inp.dataset.option === 'showWeekly');
-      if (needsFetch && state.apiKey) refreshSingleChannel(copChannelId);
-      else { saveState(); renderStage(); }
-    });
-  });
-
-  // Keyboard: Escape to close modal
+  // Remove options logic
+  // Modal close with Esc
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      const panel = $('#channel-options-panel');
-      if (!panel.classList.contains('hidden')) {
-        closeChannelOptions();
-      } else {
-        closeModal();
-      }
+      closeModal();
     }
   });
+}
+
+function countUp(el, start, end, duration) {
+  if (start === end) return;
+  const range = end - start;
+  let startTime = null;
+
+  function step(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const progress = Math.min((timestamp - startTime) / duration, 1);
+    const easeOutQuad = progress * (2 - progress);
+    const current = Math.floor(start + range * easeOutQuad);
+    el.textContent = fmt(current);
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    } else {
+      el.textContent = fmt(end);
+    }
+  }
+  window.requestAnimationFrame(step);
+}
+
+function updateStageData() {
+  state.channels.forEach(ch => {
+    const box = $('#stage').querySelector(`.channel-box[data-channel-id="${ch.id}"]`);
+    if (!box) return;
+
+    // Subs
+    const subsEl = box.querySelector('.subs-value');
+    if (subsEl && ch.data.subs !== undefined) {
+      const oldVal = Number(subsEl.dataset.value) || 0;
+      if (oldVal !== ch.data.subs) {
+        subsEl.dataset.value = ch.data.subs;
+        countUp(subsEl, oldVal, ch.data.subs, 1500);
+      }
+    }
+
+    // Views
+    const viewsEl = box.querySelector('.box-views .val');
+    if (viewsEl && ch.data.views !== undefined) {
+      const oldVal = Number(viewsEl.dataset.value) || 0;
+      if (oldVal !== ch.data.views) {
+        viewsEl.dataset.value = ch.data.views;
+        countUp(viewsEl, oldVal, ch.data.views, 1500);
+      }
+    }
+
+    // Videos
+    const vidsEl = box.querySelector('.box-videos .val');
+    if (vidsEl && ch.data.videos !== undefined) {
+      const oldVal = Number(vidsEl.dataset.value) || 0;
+      if (oldVal !== ch.data.videos) {
+        vidsEl.dataset.value = ch.data.videos;
+        countUp(vidsEl, oldVal, ch.data.videos, 1500);
+      }
+    }
+    
+    // Weekly dots
+    if (ch.data.weekDays) {
+      const dots = box.querySelectorAll('.week-dot');
+      WEEK_LABELS.forEach((_, i) => {
+        if (dots[i]) {
+          dots[i].className = 'week-dot' + (ch.data.weekDays.has(i) ? ' active' : '');
+        }
+      });
+    }
+    
+    // Pulse animation
+    box.classList.remove('just-updated');
+    void box.offsetWidth;
+    box.classList.add('just-updated');
+  });
+}
+
+function updateTopBarIndicator(success) {
+  const textEl = $('#update-text');
+  const dotEl = $('#update-dot');
+  if (!textEl || !dotEl) return;
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  textEl.textContent = `Última atualização hoje às ${timeStr}`;
+
+  if (success) {
+    dotEl.className = 'update-dot active';
+    // Remove active after 3 minutes
+    setTimeout(() => {
+      dotEl.className = 'update-dot';
+    }, 3 * 60 * 1000);
+  } else {
+    dotEl.className = 'update-dot';
+  }
+
 }
 
 document.addEventListener('DOMContentLoaded', init);

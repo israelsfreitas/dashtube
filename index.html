@@ -7,9 +7,18 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
 </head>
 <body>
+
+  <!-- TOP BAR -->
+  <div id="top-bar">
+    <div class="app-title">DashTube</div>
+    <div class="update-indicator">
+      <span id="update-text"></span>
+      <span id="update-dot" class="update-dot"></span>
+    </div>
+  </div>
 
   <!-- TOP LEFT GEAR BUTTON -->
   <button id="gear-btn" aria-label="Configurações" title="Configurações">
@@ -41,7 +50,7 @@
   <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal">
       <div class="modal-header">
-        <h2 id="modal-title">Configurações</h2>
+        <h2 id="modal-title">DashTube by @israelsfreitas</h2>
         <button id="modal-close" aria-label="Fechar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -106,41 +115,6 @@
           <p id="no-channels-msg" class="no-channels">Nenhum canal adicionado ainda.</p>
         </section>
 
-      </div>
-    </div>
-
-    <!-- CHANNEL OPTIONS PANEL (nested inside overlay) -->
-    <div id="channel-options-panel" class="channel-options-panel hidden">
-      <div class="cop-header">
-        <button id="cop-back" class="cop-back" aria-label="Voltar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Voltar
-        </button>
-        <span id="cop-title" class="cop-title"></span>
-      </div>
-      <div class="cop-body">
-        <p class="cop-subtitle">Métricas opcionais desta box:</p>
-        <label class="option-toggle-row">
-          <span>Total de vídeos</span>
-          <label class="toggle-switch sm">
-            <input type="checkbox" data-option="showVideos" />
-            <span class="toggle-track"><span class="toggle-thumb"></span></span>
-          </label>
-        </label>
-        <label class="option-toggle-row">
-          <span>Thumb + views do último vídeo</span>
-          <label class="toggle-switch sm">
-            <input type="checkbox" data-option="showLastVideo" />
-            <span class="toggle-track"><span class="toggle-thumb"></span></span>
-          </label>
-        </label>
-        <label class="option-toggle-row">
-          <span>Indicador semanal de uploads</span>
-          <label class="toggle-switch sm">
-            <input type="checkbox" data-option="showWeekly" />
-            <span class="toggle-track"><span class="toggle-thumb"></span></span>
-          </label>
-        </label>
       </div>
     </div>
   </div>
