@@ -174,7 +174,7 @@ async function fetchChannelData(channel) {
   return data;
 }
 
-async function refreshAllChannels() {
+async function refreshAllChannels(silent = false) {
   if (!state.apiKey || !state.channels.length) return;
   
   if (!navigator.onLine) {
@@ -182,7 +182,7 @@ async function refreshAllChannels() {
     return;
   }
 
-  showToast('Atualizando canais…');
+  if (!silent) showToast('Atualizando canais…');
   let errors = 0;
   for (const ch of state.channels) {
     try {
@@ -194,7 +194,10 @@ async function refreshAllChannels() {
   }
   saveState();
   
-  if ($('.channel-box', $('#stage')) && $$('.channel-box', $('#stage')).length === state.channels.length) {
+  const renderedBoxes = $$('.channel-box', $('#stage'));
+  const allMatch = renderedBoxes.length === state.channels.length && state.channels.every(ch => $('#stage').querySelector(`.channel-box[data-channel-id="${ch.id}"]`));
+  
+  if (allMatch) {
     updateStageData();
   } else {
     renderStage();
@@ -202,10 +205,12 @@ async function refreshAllChannels() {
   
   updateTopBarIndicator(errors === 0);
   if (errors) {
-    showToast(`${errors} erro(s) ao buscar dados`);
-    setTimeout(hideToast, 3000);
+    if (!silent) {
+      showToast(`${errors} erro(s) ao buscar dados`);
+      setTimeout(hideToast, 3000);
+    }
   } else {
-    hideToast();
+    if (!silent) hideToast();
   }
 }
 
@@ -229,7 +234,7 @@ async function refreshSingleChannel(id) {
 
 function scheduleRefresh() {
   if (refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(refreshAllChannels, REFRESH_MS);
+  refreshTimer = setInterval(() => refreshAllChannels(true), REFRESH_MS);
 }
 
 // ── RENDER STAGE ─────────────────────────────
@@ -317,8 +322,7 @@ function buildBox(ch) {
   }
 
   const nameWrap = document.createElement('div');
-  nameWrap.style.overflow = 'hidden';
-  nameWrap.style.flex = '1';
+  nameWrap.className = 'box-name-wrap';
 
   const nameEl = document.createElement('div');
   nameEl.className   = 'box-name';
@@ -369,6 +373,12 @@ function buildBox(ch) {
   const subsLbl = document.createElement('div');
   subsLbl.className   = 'subs-label';
   subsLbl.textContent = 'inscritos';
+
+  if (data.subs !== undefined && data.subs >= 950 && data.subs <= 1050) {
+    subsVal.classList.add('subs-milestone');
+    subsLbl.classList.add('subs-milestone');
+  }
+
   subsWrap.appendChild(subsLbl);
   box.appendChild(subsWrap);
 
@@ -727,6 +737,16 @@ function updateStageData() {
       if (oldVal !== ch.data.subs) {
         subsEl.dataset.value = ch.data.subs;
         countUp(subsEl, oldVal, ch.data.subs, 1500);
+      }
+      
+      const subsWrap = box.querySelector('.box-subs');
+      const subsLbl = box.querySelector('.subs-label');
+      if (ch.data.subs >= 950 && ch.data.subs <= 1050) {
+        subsEl.classList.add('subs-milestone');
+        if (subsLbl) subsLbl.classList.add('subs-milestone');
+      } else {
+        subsEl.classList.remove('subs-milestone');
+        if (subsLbl) subsLbl.classList.remove('subs-milestone');
       }
     }
 
