@@ -176,6 +176,12 @@ async function fetchChannelData(channel) {
 
 async function refreshAllChannels() {
   if (!state.apiKey || !state.channels.length) return;
+  
+  if (!navigator.onLine) {
+    updateTopBarIndicator(false, true);
+    return;
+  }
+
   showToast('Atualizando canais…');
   let errors = 0;
   for (const ch of state.channels) {
@@ -188,7 +194,7 @@ async function refreshAllChannels() {
   }
   saveState();
   
-  if ($$('.channel-box', $('#stage')).length > 0 && $$('.channel-box', $('#stage')).length === state.channels.length) {
+  if ($('.channel-box', $('#stage')) && $$('.channel-box', $('#stage')).length === state.channels.length) {
     updateStageData();
   } else {
     renderStage();
@@ -607,6 +613,12 @@ async function addChannel() {
 
 // ── BOOT ─────────────────────────────────────
 function init() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.error('Service Worker registration failed:', err);
+    });
+  }
+
   loadState();
   applyTheme(state.theme);
 
@@ -734,25 +746,29 @@ function updateStageData() {
   });
 }
 
-function updateTopBarIndicator(success) {
+function updateTopBarIndicator(success, offline = false) {
   const textEl = $('#update-text');
   const dotEl = $('#update-dot');
   if (!textEl || !dotEl) return;
 
   const now = new Date();
   const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  textEl.textContent = `Última atualização hoje às ${timeStr}`;
 
-  if (success) {
-    dotEl.className = 'update-dot active';
-    // Remove active after 3 minutes
-    setTimeout(() => {
-      dotEl.className = 'update-dot';
-    }, 3 * 60 * 1000);
-  } else {
+  if (offline) {
+    textEl.textContent = `Modo Offline (Dados em Cache) às ${timeStr}`;
     dotEl.className = 'update-dot';
+  } else {
+    textEl.textContent = `Última atualização hoje às ${timeStr}`;
+    if (success) {
+      dotEl.className = 'update-dot active';
+      // Remove active after 3 minutes
+      setTimeout(() => {
+        dotEl.className = 'update-dot';
+      }, 3 * 60 * 1000);
+    } else {
+      dotEl.className = 'update-dot';
+    }
   }
-
 }
 
 document.addEventListener('DOMContentLoaded', init);
